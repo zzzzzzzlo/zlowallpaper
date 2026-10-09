@@ -1,0 +1,11 @@
+frontend/build*/
+frontend/deps/
+frontend/dist/
+*.exe
+*.dll
+*.a
+*.lib
+*.log
+*.user
+.agents/
+.codex/

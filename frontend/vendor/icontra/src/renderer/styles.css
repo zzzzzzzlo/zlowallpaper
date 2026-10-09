@@ -1,0 +1,507 @@
+:root {
+  color-scheme: dark;
+  font-family: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+  --dock-collapse-duration: 280ms;
+  --dock-collapse-fade-duration: 210ms;
+}
+
+* { box-sizing: border-box; }
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+button { font: inherit; }
+
+.dock-root {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 28px 8px 34px;
+  background: transparent;
+}
+
+.dock {
+  --overall-scale: 1;
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 220px;
+  min-height: 108px;
+  padding: 6px;
+  transform: scale(var(--overall-scale));
+  transform-origin: 50% 100%;
+  transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  -webkit-app-region: no-drag;
+}
+
+.apps {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 0;
+}
+
+.dock-item {
+  --dock-scale: 1;
+  --dock-lift: 0px;
+  position: relative;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: end center;
+  width: 86px;
+  height: 104px;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  color: white;
+  background: transparent;
+  cursor: default;
+  transform: translateY(calc(-1 * var(--dock-lift))) scale(var(--dock-scale));
+  transform-origin: 50% 100%;
+  opacity: 1;
+  transition:
+    transform 150ms cubic-bezier(0.2, 0.82, 0.24, 1.08),
+    opacity 180ms ease;
+  z-index: calc(10 + var(--dock-z, 0));
+  -webkit-app-region: no-drag;
+}
+
+.dock-item[hidden] { display: none; }
+
+.dock-item:focus-visible .app-icon {
+  filter:
+    drop-shadow(0 0 2px rgba(255, 255, 255, 0.95))
+    drop-shadow(0 10px 10px rgba(0, 0, 0, 0.4));
+}
+
+.icon-motion {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 74px;
+  height: 96px;
+  transform-origin: 50% 100%;
+}
+
+.app-icon,
+.fallback-icon {
+  position: absolute;
+  top: 5px;
+  width: 64px;
+  height: 64px;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  filter: drop-shadow(0 9px 8px rgba(0, 0, 0, 0.38));
+}
+
+.app-icon { object-fit: contain; }
+
+.fallback-icon {
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 27px;
+  font-weight: 600;
+  background: linear-gradient(145deg, #5966dd, #7548b2);
+}
+
+.reflection-mask {
+  position: absolute;
+  top: 72px;
+  width: 64px;
+  height: 34px;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.25;
+  transform: scaleX(0.94);
+  filter: blur(0.7px) saturate(0.8) brightness(0.76);
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.66) 0%,
+    rgba(0, 0, 0, 0.32) 48%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.66) 0%,
+    rgba(0, 0, 0, 0.32) 48%,
+    transparent 100%
+  );
+}
+
+.reflection {
+  display: block;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  object-position: center;
+  transform: scaleY(-1);
+}
+
+.dock-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 86px;
+  height: 104px;
+}
+
+.dock-actions[hidden] { display: none; }
+
+.control-button {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(24, 27, 33, 0.28);
+  box-shadow: 0 7px 18px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition:
+    transform 150ms cubic-bezier(0.2, 0.8, 0.2, 1.2),
+    background 150ms ease,
+    border-color 150ms ease;
+  -webkit-app-region: no-drag;
+}
+
+.control-button:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(55, 61, 74, 0.48);
+  transform: translateY(-3px) scale(1.06);
+}
+
+.control-button:active { transform: scale(0.96); }
+
+.control-button svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.hide-button,
+.desktop-icons-button {
+  place-items: center;
+  cursor: pointer;
+}
+
+.hide-glyph,
+.desktop-icons-glyph,
+.control-reflection {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 19px;
+  color: rgba(255, 255, 255, 0.82);
+  background: rgba(22, 25, 31, 0.26);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(10px);
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.hide-glyph,
+.desktop-icons-glyph { transform: translateY(-7px); }
+
+.control-reflection-mask {
+  position: absolute;
+  top: 79px;
+  width: 64px;
+  height: 34px;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.25;
+  transform: scaleX(0.94);
+  filter: blur(0.7px) saturate(0.8) brightness(0.76);
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.66) 0%,
+    rgba(0, 0, 0, 0.32) 48%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.66) 0%,
+    rgba(0, 0, 0, 0.32) 48%,
+    transparent 100%
+  );
+}
+
+.control-reflection {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: scaleY(-1);
+}
+
+.hide-button:hover .hide-glyph,
+.desktop-icons-button:hover .desktop-icons-glyph {
+  border-color: rgba(255, 255, 255, 0.46);
+  background: rgba(50, 55, 66, 0.44);
+}
+
+.hide-glyph svg,
+.desktop-icons-glyph svg,
+.control-reflection svg {
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.desktop-icons-slash {
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.desktop-icons-button[data-icons-hidden="true"] .desktop-icons-glyph,
+.desktop-icons-button[data-icons-hidden="true"] .control-reflection {
+  border-color: rgba(255, 255, 255, 0.36);
+  background: rgba(68, 76, 98, 0.46);
+}
+
+.desktop-icons-button[data-icons-hidden="true"] .desktop-icons-slash {
+  opacity: 1;
+}
+
+.desktop-icons-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.restore-button {
+  display: none;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 50%;
+  outline: 0;
+  color: rgba(255, 255, 255, 0.84);
+  background: rgba(22, 25, 31, 0.34);
+  box-shadow: 0 7px 18px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition:
+    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 160ms ease,
+    background 160ms ease;
+  -webkit-app-region: no-drag;
+}
+
+.restore-glyph {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.restore-glyph svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.restore-button:hover {
+  border-color: rgba(255, 255, 255, 0.48);
+  background: rgba(50, 55, 66, 0.48);
+  transform: scale(1.1);
+}
+
+.restore-button:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 3px;
+}
+
+.drag-zone {
+  position: absolute;
+  z-index: 50;
+  bottom: 0;
+  left: 50%;
+  width: calc(100% - 30px);
+  height: 34px;
+  max-width: 760px;
+  transform: translateX(-50%);
+  cursor: grab;
+  -webkit-app-region: drag;
+}
+
+.drag-zone::after {
+  content: "";
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  width: 72px;
+  height: 4px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: opacity 160ms ease;
+}
+
+.dock-root:hover .drag-zone::after { opacity: 0.46; }
+.drag-zone:active { cursor: grabbing; }
+
+.dock-root[data-orientation="vertical"] {
+  align-items: center;
+  justify-content: center;
+  padding: 8px 34px 8px 20px;
+}
+
+.dock-root[data-orientation="vertical"] .dock {
+  flex-direction: column;
+  align-items: center;
+  min-width: 108px;
+  min-height: 108px;
+  transform-origin: 50% 50%;
+}
+
+.dock-root[data-orientation="vertical"] .apps {
+  flex-direction: column;
+  align-items: center;
+}
+
+.dock-root[data-orientation="vertical"] .dock-item,
+.dock-root[data-orientation="vertical"] .dock-actions {
+  width: 104px;
+  height: 86px;
+}
+
+.dock-root[data-orientation="vertical"] .dock-item {
+  place-items: center;
+  transform-origin: 50% 50%;
+}
+
+.dock-root[data-orientation="vertical"] .icon-motion {
+  width: 96px;
+  height: 74px;
+  transform-origin: 50% 50%;
+}
+
+.dock-root[data-orientation="vertical"] .reflection-mask { display: none; }
+.dock-root[data-orientation="vertical"] .control-reflection-mask { display: none; }
+.dock-root[data-orientation="vertical"] .hide-glyph { transform: rotate(90deg); }
+.dock-root[data-orientation="vertical"] .desktop-icons-glyph { transform: none; }
+.dock-root[data-orientation="vertical"] .restore-glyph { transform: rotate(90deg); }
+
+.dock-root[data-orientation="vertical"] .drag-zone {
+  top: 50%;
+  right: 0;
+  bottom: auto;
+  left: auto;
+  width: 34px;
+  height: calc(100% - 24px);
+  max-width: none;
+  max-height: 760px;
+  transform: translateY(-50%);
+}
+
+.dock-root[data-orientation="vertical"] .drag-zone::after {
+  top: 50%;
+  left: 13px;
+  width: 4px;
+  height: 72px;
+  transform: translateY(-50%);
+}
+
+.dock-root.collapse-preparing .dock-item {
+  opacity: 1;
+  transform: scale(1);
+  transition: none;
+}
+
+.dock-root.expansion-measuring .dock-item {
+  opacity: 0;
+  transform: scale(1);
+  transition: none;
+}
+
+.dock-root.is-collapsing .dock-item {
+  opacity: 0;
+  transform:
+    translate(var(--collapse-x, 0), var(--collapse-y, 0))
+    scale(0.08);
+  transition:
+    transform var(--dock-collapse-duration) cubic-bezier(0.55, 0, 0.8, 0.25),
+    opacity var(--dock-collapse-fade-duration) ease;
+}
+
+.dock-root.is-expanding .dock-item {
+  opacity: 0;
+  transform:
+    translate(var(--collapse-x, 0), var(--collapse-y, 0))
+    scale(0.08);
+  transition: none;
+}
+
+.dock-root.is-expansion-animating .dock-item {
+  transition:
+    transform var(--dock-collapse-duration) cubic-bezier(0.2, 0.72, 0.42, 1),
+    opacity var(--dock-collapse-fade-duration) ease;
+}
+
+.dock-root.is-collapsed {
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.dock-root.is-collapsed .dock {
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  transform: none;
+}
+
+.dock-root.is-collapsed .apps,
+.dock-root.is-collapsed .dock-actions,
+.dock-root.is-collapsed .hide-button,
+.dock-root.is-collapsed .desktop-icons-button,
+.dock-root.is-collapsed .drag-zone {
+  display: none;
+}
+
+.dock-root.is-collapsed .restore-button {
+  display: grid;
+  place-items: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock,
+  .dock-item,
+  .control-button,
+  .restore-button { transition-duration: 1ms; }
+}

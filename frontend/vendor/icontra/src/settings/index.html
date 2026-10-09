@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Icontra 设置</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="page-header">
+        <div class="brand-mark" aria-hidden="true">I</div>
+        <div>
+          <h1>Icontra 设置</h1>
+          <p>调整 Dock 外观、行为和应用快捷方式</p>
+        </div>
+        <span id="version" class="version-pill"></span>
+      </header>
+
+      <section class="settings-card" aria-labelledby="dock-heading">
+        <div class="section-heading">
+          <div>
+            <h2 id="dock-heading">Dock 设置</h2>
+            <p>更改会实时应用并自动保存</p>
+          </div>
+        </div>
+
+        <div class="setting-row scale-row">
+          <div class="setting-copy">
+            <strong>整体大小</strong>
+            <span>同时缩放图标、间距与控制按钮</span>
+          </div>
+          <div class="range-control">
+            <input id="scale" type="range" min="65" max="150" step="5" value="100" />
+            <output id="scale-value" for="scale">100%</output>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-copy">
+            <strong>排列方向</strong>
+            <span>选择图标栏横向排列或竖向排列</span>
+          </div>
+          <div class="segmented-control" role="radiogroup" aria-label="Dock 排列方向">
+            <label>
+              <input id="orientation-horizontal" type="radio" name="orientation" value="horizontal" />
+              <span>横向</span>
+            </label>
+            <label>
+              <input id="orientation-vertical" type="radio" name="orientation" value="vertical" />
+              <span>竖向</span>
+            </label>
+          </div>
+        </div>
+
+        <label class="setting-row" for="hide-button-enabled">
+          <span class="setting-copy">
+            <strong>启用隐藏按钮</strong>
+            <span>在图标栏末尾显示收起按钮，收起后仅保留一个圆点</span>
+          </span>
+          <span class="switch">
+            <input id="hide-button-enabled" type="checkbox" />
+            <span class="switch-track"></span>
+          </span>
+        </label>
+
+        <label class="setting-row" for="desktop-icons-hidden">
+          <span class="setting-copy">
+            <strong>隐藏桌面图标</strong>
+            <span>隐藏 Windows 桌面上的图标和快捷方式，不会删除任何文件</span>
+          </span>
+          <span class="switch">
+            <input id="desktop-icons-hidden" type="checkbox" />
+            <span class="switch-track"></span>
+          </span>
+        </label>
+
+        <label class="setting-row" for="desktop-icon-button-enabled">
+          <span class="setting-copy">
+            <strong>显示桌面图标按钮</strong>
+            <span>在图标栏末尾加入按钮，随时切换桌面图标的显示状态</span>
+          </span>
+          <span class="switch">
+            <input id="desktop-icon-button-enabled" type="checkbox" />
+            <span class="switch-track"></span>
+          </span>
+        </label>
+
+        <label class="setting-row" for="taskbar-transparent">
+          <span class="setting-copy">
+            <strong>透明底部任务栏</strong>
+            <span>让 Windows 底部任务栏透明，关闭后恢复系统默认外观</span>
+          </span>
+          <span class="switch">
+            <input id="taskbar-transparent" type="checkbox" />
+            <span class="switch-track"></span>
+          </span>
+        </label>
+
+        <label class="setting-row" for="always-on-top">
+          <span class="setting-copy">
+            <strong>始终置顶</strong>
+            <span>让 Dock 保持在其他普通窗口上方</span>
+          </span>
+          <span class="switch">
+            <input id="always-on-top" type="checkbox" />
+            <span class="switch-track"></span>
+          </span>
+        </label>
+
+        <label class="setting-row" for="launch-at-startup">
+          <span class="setting-copy">
+            <strong>开机自动启动</strong>
+            <span>登录 Windows 后自动运行 Icontra</span>
+          </span>
+          <span class="switch">
+            <input id="launch-at-startup" type="checkbox" />
+            <span class="switch-track"></span>
+          </span>
+        </label>
+
+        <div class="setting-row">
+          <div class="setting-copy">
+            <strong>Dock 位置</strong>
+            <span>将 Dock 移回当前显示器的底部中央</span>
+          </div>
+          <button id="reset-position" class="secondary-button" type="button">恢复默认位置</button>
+        </div>
+      </section>
+
+      <section class="settings-card apps-card" aria-labelledby="apps-heading">
+        <div class="section-heading">
+          <div>
+            <h2 id="apps-heading">应用管理 <span id="app-count" class="count"></span></h2>
+            <p>添加或删除 Dock 中显示的快捷方式</p>
+          </div>
+          <div class="heading-actions">
+            <button id="refresh-icons" class="secondary-button" type="button">刷新图标</button>
+            <button id="add-application" class="primary-button" type="button">添加应用</button>
+          </div>
+        </div>
+        <div id="application-list" class="application-list"></div>
+        <div id="empty-apps" class="empty-apps" hidden>
+          尚未添加应用，点击“添加应用”开始使用。
+        </div>
+      </section>
+    </main>
+    <script src="renderer.js"></script>
+  </body>
+</html>

@@ -1,0 +1,567 @@
+openapi: 3.0.3
+info:
+  title: ZloWallpaper API
+  version: 1.0.0
+  description: |
+    前后端契约基线，业务后端待实现。所有成功响应 code=OK，错误保留实际 HTTP 状态。
+    ID/版本是字符串，金额为整数分，sizeBytes 为十进制字符串，时间为 UTC ISO-8601。
+    禁止重定向；下载票据 URL 返回文件而非 JSON。真实支付不在 v1 范围。
+servers:
+  - url: http://127.0.0.1:8080/api/v1
+    description: 本机开发
+tags:
+  - name: Auth
+  - name: Catalog
+  - name: Orders
+  - name: Downloads
+  - name: Admin
+paths:
+  /auth/register:
+    post:
+      operationId: register
+      tags: [Auth]
+      summary: 注册；成功后需登录
+      requestBody: { $ref: '#/components/requestBodies/Credentials' }
+      responses:
+        '201':
+          description: 注册成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { $ref: '#/components/schemas/Envelope' }
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required: [username]
+                        properties:
+                          username: { type: string }
+        default: { $ref: '#/components/responses/Error' }
+  /auth/login:
+    post:
+      operationId: login
+      tags: [Auth]
+      summary: 登录；密码错误返回 401 INVALID_CREDENTIALS
+      requestBody: { $ref: '#/components/requestBodies/Credentials' }
+      responses:
+        '200': { $ref: '#/components/responses/Session' }
+        default: { $ref: '#/components/responses/Error' }
+  /auth/refresh:
+    post:
+      operationId: refreshSession
+      tags: [Auth]
+      summary: 刷新并轮换 refreshToken；过期/撤销返回 401
+      requestBody: { $ref: '#/components/requestBodies/RefreshToken' }
+      responses:
+        '200': { $ref: '#/components/responses/Session' }
+        default: { $ref: '#/components/responses/Error' }
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [Auth]
+      summary: 撤销当前会话；不要求有效 accessToken
+      requestBody: { $ref: '#/components/requestBodies/RefreshToken' }
+      responses:
+        '200': { $ref: '#/components/responses/Empty' }
+        default: { $ref: '#/components/responses/Error' }
+  /me:
+    get:
+      operationId: currentUser
+      tags: [Auth]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 当前用户
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { $ref: '#/components/schemas/Envelope' }
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/User' }
+        default: { $ref: '#/components/responses/Error' }
+  /categories:
+    get:
+      operationId: categories
+      tags: [Catalog]
+      responses:
+        '200':
+          description: 全部启用分类
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { $ref: '#/components/schemas/Envelope' }
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/Category' }
+        default: { $ref: '#/components/responses/Error' }
+  /wallpapers:
+    get:
+      operationId: wallpapers
+      tags: [Catalog]
+      summary: 已上架商品；标题搜索；稳定排序
+      parameters:
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PageSize' }
+        - name: keyword
+          in: query
+          schema: { type: string, maxLength: 100, default: '' }
+        - name: categoryId
+          in: query
+          schema: { type: string, default: '' }
+      responses:
+        '200':
+          description: 商品分页
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { $ref: '#/components/schemas/Envelope' }
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/ProductPage' }
+        default: { $ref: '#/components/responses/Error' }
+  /wallpapers/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      operationId: wallpaperDetail
+      tags: [Catalog]
+      summary: 商品详情；不含原文件 URL
+      responses:
+        '200': { $ref: '#/components/responses/Product' }
+        default: { $ref: '#/components/responses/Error' }
+  /orders:
+    post:
+      operationId: createOrder
+      tags: [Orders]
+      security: [{ bearerAuth: [] }]
+      summary: 创建订单；免费直接 PAID 并授权；返回已有有效订单避免重复购买
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [wallpaperId]
+              properties:
+                wallpaperId: { type: string, minLength: 1 }
+      responses:
+        '200': { $ref: '#/components/responses/Order' }
+        '201': { $ref: '#/components/responses/Order' }
+        default: { $ref: '#/components/responses/Error' }
+  /me/orders:
+    get:
+      operationId: myOrders
+      tags: [Orders]
+      security: [{ bearerAuth: [] }]
+      summary: 本账号全部订单；v1 不分页，超出业务上限明确报错而非截断
+      responses:
+        '200':
+          description: 订单数组
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { $ref: '#/components/schemas/Envelope' }
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/Order' }
+        default: { $ref: '#/components/responses/Error' }
+  /orders/{id}/test-pay:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: testPay
+      tags: [Orders]
+      security: [{ bearerAuth: [] }]
+      summary: 仅开发测试；订单与权益事务提交；生产返回 403 TEST_PAYMENT_DISABLED
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      responses:
+        '200': { $ref: '#/components/responses/Order' }
+        default: { $ref: '#/components/responses/Error' }
+  /me/wallpapers:
+    get:
+      operationId: ownedWallpapers
+      tags: [Downloads]
+      security: [{ bearerAuth: [] }]
+      summary: 当前账号有效购买权益对应商品，包括已购且允许下载的停售商品
+      responses:
+        '200':
+          description: Product 数组，无本地绝对路径或原文件 URL
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { $ref: '#/components/schemas/Envelope' }
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/Product' }
+        default: { $ref: '#/components/responses/Error' }
+  /wallpapers/{id}/download-grants:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: downloadGrant
+      tags: [Downloads]
+      security: [{ bearerAuth: [] }]
+      summary: 校验权益后签发短时票据；无权益返回 403 NOT_OWNED
+      responses:
+        '200':
+          description: 下载授权；URL 必须直接 GET 返回 HTTP 200 文件字节
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { $ref: '#/components/schemas/Envelope' }
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/DownloadGrant' }
+        default: { $ref: '#/components/responses/Error' }
+  /admin/uploads:
+    post:
+      operationId: adminUpload
+      tags: [Admin]
+      security: [{ bearerAuth: [] }]
+      summary: 仅管理员；服务端校验真实格式、大小、SHA，返回资产句柄
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, purpose]
+              properties:
+                file: { type: string, format: binary }
+                purpose: { type: string, enum: [ORIGINAL, COVER] }
+      responses:
+        '201':
+          description: 资产元数据；封面最大 4 MiB，原文件最大 10 GiB；媒体处理失败不能上架
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { $ref: '#/components/schemas/Envelope' }
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/Asset' }
+        default: { $ref: '#/components/responses/Error' }
+  /admin/wallpapers:
+    get:
+      operationId: adminWallpapers
+      tags: [Admin]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PageSize' }
+      responses:
+        '200':
+          description: 含 DRAFT/PUBLISHED/WITHDRAWN 的分页
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { $ref: '#/components/schemas/Envelope' }
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        required: [items, page, pageSize, total]
+                        properties:
+                          items:
+                            type: array
+                            items: { $ref: '#/components/schemas/AdminProduct' }
+                          page: { type: integer, minimum: 1 }
+                          pageSize: { type: integer, minimum: 1, maximum: 50 }
+                          total: { type: integer, minimum: 0 }
+        default: { $ref: '#/components/responses/Error' }
+    post:
+      operationId: adminCreateWallpaper
+      tags: [Admin]
+      security: [{ bearerAuth: [] }]
+      summary: 创建 DRAFT 商品；媒体元数据和版本由服务器生成
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - { $ref: '#/components/schemas/ProductMutation' }
+                - required: [title, categoryId, priceCents, originalAssetId, coverAssetId]
+      responses:
+        '201': { $ref: '#/components/responses/AdminProduct' }
+        default: { $ref: '#/components/responses/Error' }
+  /admin/wallpapers/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    patch:
+      operationId: adminUpdateWallpaper
+      tags: [Admin]
+      security: [{ bearerAuth: [] }]
+      summary: 修改商品；更换原文件生成新 resourceVersion，不能覆写旧版本资产
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProductMutation' }
+      responses:
+        '200': { $ref: '#/components/responses/AdminProduct' }
+        default: { $ref: '#/components/responses/Error' }
+  /admin/wallpapers/{id}/publication:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    put:
+      operationId: adminPublishWallpaper
+      tags: [Admin]
+      security: [{ bearerAuth: [] }]
+      summary: 上下架；验证完整资产才允许 PUBLISHED
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [PUBLISHED, WITHDRAWN] }
+      responses:
+        '200': { $ref: '#/components/responses/AdminProduct' }
+        default: { $ref: '#/components/responses/Error' }
+  /health:
+    get:
+      operationId: health
+      summary: 服务就绪检查；不可泄漏内部连接串；桌面不消费
+      responses:
+        '200': { $ref: '#/components/responses/Empty' }
+        default: { $ref: '#/components/responses/Error' }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer }
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, minLength: 1, maxLength: 128, pattern: '^[A-Za-z0-9._-]+$' }
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PageSize:
+      name: pageSize
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 50, default: 12 }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: 同账号同操作键唯一；同键同请求返回相同业务结果；同键不同内容 409
+      schema: { type: string, minLength: 1, maxLength: 128 }
+  requestBodies:
+    Credentials:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required: [username, password]
+            properties:
+              username: { type: string, minLength: 3, maxLength: 32 }
+              password: { type: string, format: password, minLength: 8, maxLength: 128 }
+    RefreshToken:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [refreshToken]
+            properties:
+              refreshToken: { type: string, minLength: 1 }
+  responses:
+    Error:
+      description: |
+        400/422 VALIDATION_ERROR；401 INVALID_CREDENTIALS/SESSION_EXPIRED；403 NOT_OWNED/FORBIDDEN/TEST_PAYMENT_DISABLED；
+        404 PRODUCT_NOT_FOUND/ORDER_NOT_FOUND；409 USERNAME_EXISTS/IDEMPOTENCY_CONFLICT；429 RATE_LIMITED；500/503 服务故障。
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [code, message, data, requestId]
+            properties:
+              code: { type: string, example: NOT_OWNED }
+              message: { type: string, example: 尚未拥有该壁纸 }
+              data: { nullable: true, example: null }
+              requestId: { type: string }
+    Empty:
+      description: 成功
+      content:
+        application/json:
+          schema:
+            allOf:
+              - { $ref: '#/components/schemas/Envelope' }
+              - type: object
+                properties:
+                  data: { type: object }
+    Session:
+      description: 登录会话
+      content:
+        application/json:
+          schema:
+            allOf:
+              - { $ref: '#/components/schemas/Envelope' }
+              - type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Session' }
+    Product:
+      description: 商品详情
+      content:
+        application/json:
+          schema:
+            allOf:
+              - { $ref: '#/components/schemas/Envelope' }
+              - type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Product' }
+    Order:
+      description: 服务端订单，不代表 PENDING 已购买成功
+      content:
+        application/json:
+          schema:
+            allOf:
+              - { $ref: '#/components/schemas/Envelope' }
+              - type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Order' }
+    AdminProduct:
+      description: 管理员商品详情
+      content:
+        application/json:
+          schema:
+            allOf:
+              - { $ref: '#/components/schemas/Envelope' }
+              - type: object
+                properties:
+                  data: { $ref: '#/components/schemas/AdminProduct' }
+  schemas:
+    Envelope:
+      type: object
+      required: [code, message, data, requestId]
+      properties:
+        code: { type: string, enum: [OK] }
+        message: { type: string }
+        requestId: { type: string }
+    User:
+      type: object
+      required: [id, username, displayName]
+      properties:
+        id: { type: string, minLength: 1 }
+        username: { type: string }
+        displayName: { type: string }
+    Session:
+      type: object
+      required: [accessToken, refreshToken, expiresIn, user]
+      properties:
+        accessToken: { type: string, minLength: 1 }
+        refreshToken: { type: string, minLength: 1 }
+        expiresIn: { type: integer, minimum: 60, maximum: 86400, example: 900 }
+        user: { $ref: '#/components/schemas/User' }
+    Category:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string }
+        name: { type: string }
+    Product:
+      type: object
+      required: [id, title, description, categoryId, categoryName, type, priceCents, currency, coverUrl, width, height, fps, resourceVersion, sizeBytes, creator]
+      properties:
+        id: { type: string, pattern: '^[A-Za-z0-9._-]+$', example: wp-1001 }
+        title: { type: string, minLength: 1, maxLength: 120 }
+        description: { type: string, maxLength: 4000 }
+        categoryId: { type: string }
+        categoryName: { type: string }
+        type: { type: string, enum: [IMAGE, GIF, VIDEO] }
+        priceCents: { type: integer, minimum: 0, maximum: 100000000 }
+        currency: { type: string, enum: [CNY] }
+        coverUrl: { type: string, format: uri, description: 最终 HTTPS 或本机 HTTP，响应不超过 4 MiB }
+        width: { type: integer, minimum: 1 }
+        height: { type: integer, minimum: 1 }
+        fps: { type: number, minimum: 0 }
+        resourceVersion: { type: string, minLength: 1 }
+        sizeBytes: { type: string, pattern: '^[1-9][0-9]*$', example: '18422301' }
+        creator: { type: string }
+    ProductPage:
+      type: object
+      required: [items, page, pageSize, total]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Product' }
+        page: { type: integer, minimum: 1 }
+        pageSize: { type: integer, minimum: 1, maximum: 50 }
+        total: { type: integer, minimum: 0 }
+    Order:
+      type: object
+      required: [id, wallpaperId, title, amountCents, currency, status, testPaymentEnabled, createdAt]
+      properties:
+        id: { type: string, pattern: '^[A-Za-z0-9._-]+$' }
+        wallpaperId: { type: string }
+        title: { type: string }
+        amountCents: { type: integer, minimum: 0 }
+        currency: { type: string, enum: [CNY] }
+        status: { type: string, enum: [PENDING, PAID, CANCELED, REFUNDED] }
+        testPaymentEnabled: { type: boolean, description: 生产必须 false }
+        createdAt: { type: string, format: date-time }
+    DownloadGrant:
+      type: object
+      required: [wallpaperId, resourceVersion, url, expiresAt, fileExtension, sizeBytes, sha256]
+      properties:
+        wallpaperId: { type: string }
+        resourceVersion: { type: string }
+        url: { type: string, format: uri, description: HTTPS/本机 HTTP 最终文件 URL；不需要账号 Authorization }
+        expiresAt: { type: string, format: date-time }
+        fileExtension: { type: string, enum: [jpg, jpeg, png, bmp, webp, gif, mp4, webm, mov, avi] }
+        sizeBytes: { type: string, pattern: '^[1-9][0-9]*$', description: 实际文件字节数，最大 10737418240 }
+        sha256: { type: string, pattern: '^[0-9a-fA-F]{64}$' }
+    ProductMutation:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        description: { type: string, maxLength: 4000 }
+        categoryId: { type: string }
+        priceCents: { type: integer, minimum: 0, maximum: 100000000 }
+        originalAssetId: { type: string }
+        coverAssetId: { type: string }
+        creator: { type: string, maxLength: 120 }
+    Asset:
+      type: object
+      required: [id, purpose, status, mimeType, fileExtension, sizeBytes, sha256, width, height, fps]
+      properties:
+        id: { type: string }
+        purpose: { type: string, enum: [ORIGINAL, COVER] }
+        status: { type: string, enum: [PROCESSING, READY, FAILED] }
+        mimeType: { type: string }
+        fileExtension: { type: string }
+        sizeBytes: { type: string, pattern: '^[1-9][0-9]*$' }
+        sha256: { type: string, pattern: '^[0-9a-fA-F]{64}$' }
+        width: { type: integer, minimum: 0 }
+        height: { type: integer, minimum: 0 }
+        fps: { type: number, minimum: 0 }
+    AdminProduct:
+      allOf:
+        - { $ref: '#/components/schemas/Product' }
+        - type: object
+          required: [publicationStatus, originalAssetId, coverAssetId]
+          properties:
+            publicationStatus: { type: string, enum: [DRAFT, PUBLISHED, WITHDRAWN] }
+            originalAssetId: { type: string }
+            coverAssetId: { type: string }

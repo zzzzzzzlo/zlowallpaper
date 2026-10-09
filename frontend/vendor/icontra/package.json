@@ -1,0 +1,8 @@
+{
+  "name": "icontra",
+  "version": "0.5.1",
+  "description": "The managed Electron Dock runtime for LightWallpaper.",
+  "main": "src/main.js",
+  "author": "Icontra",
+  "license": "MIT"
+}

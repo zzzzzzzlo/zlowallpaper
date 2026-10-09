@@ -1,0 +1,25 @@
+********* Start testing of StoreTests *********
+Config: Using QtTest library 6.11.1, Qt 6.11.1 (x86_64-little_endian-llp64 shared (dynamic) release build; by GCC 16.1.0), windows 11
+PASS   : StoreTests::initTestCase()
+PASS   : StoreTests::catalogAndAuthentication()
+PASS   : StoreTests::supportedMediaDecoders()
+PASS   : StoreTests::unauthorizedDownloadAndFreeClaim()
+PASS   : StoreTests::paidOrderAndDownloadRoundTrip()
+PASS   : StoreTests::corruptFileAndCancellation()
+PASS   : StoreTests::accountSwitchDoesNotReuseEntitlements()
+PASS   : StoreTests::libraryRollbackAndVault()
+QDEBUG : StoreTests::storefrontUiWorkflow() FT_New_Face failed with index 0 : 2
+QWARN  : StoreTests::storefrontUiWorkflow() This plugin does not support propagateSizeHints()
+QWARN  : StoreTests::storefrontUiWorkflow() This plugin does not support propagateSizeHints()
+QWARN  : StoreTests::storefrontUiWorkflow() This plugin does not support propagateSizeHints()
+QWARN  : StoreTests::storefrontUiWorkflow() This plugin does not support propagateSizeHints()
+QWARN  : StoreTests::storefrontUiWorkflow() This plugin does not support propagateSizeHints()
+QWARN  : StoreTests::storefrontUiWorkflow() This plugin does not support propagateSizeHints()
+QWARN  : StoreTests::storefrontUiWorkflow() This plugin does not support propagateSizeHints()
+QWARN  : StoreTests::storefrontUiWorkflow() This plugin does not support propagateSizeHints()
+QWARN  : StoreTests::storefrontUiWorkflow() This plugin does not support propagateSizeHints()
+QWARN  : StoreTests::storefrontUiWorkflow() This plugin does not support propagateSizeHints()
+PASS   : StoreTests::storefrontUiWorkflow()
+PASS   : StoreTests::cleanupTestCase()
+Totals: 10 passed, 0 failed, 0 skipped, 0 blacklisted, 5232ms
+********* Finished testing of StoreTests *********

@@ -1,0 +1,7 @@
+<RCC>
+  <qresource prefix="/icons">
+    <file>asterol.ico</file>
+    <file>checkmark.svg</file>
+    <file>chevron-down.svg</file>
+  </qresource>
+</RCC>
