@@ -9,7 +9,9 @@ struct DownloadTask;
 class DownloadManager final : public QObject {
     Q_OBJECT
   public:
-    explicit DownloadManager(WallpaperLibrary* library, QObject* parent = nullptr);
+    explicit DownloadManager(WallpaperLibrary* library, QObject* parent = nullptr,
+                             const QString& downloadDirectory = {});
+    static QString defaultDownloadDirectory();
     ~DownloadManager() override;
     void start(const QJsonObject& product, const QJsonObject& grant, const QString& accountKey);
     void cancel(const QString& productId);
@@ -24,6 +26,7 @@ class DownloadManager final : public QObject {
   private:
     void fail(const std::shared_ptr<DownloadTask>& task, const QString& message);
     WallpaperLibrary* library_;
+    QString downloadDirectory_;
     QNetworkAccessManager network_;
     QHash<QString, std::shared_ptr<DownloadTask>> tasks_;
     QHash<QString, QString> states_;

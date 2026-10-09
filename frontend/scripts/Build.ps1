@@ -33,7 +33,7 @@ if (!(Test-Path $webp)) {
 New-Item -ItemType Directory -Force -Path "$build/imageformats" | Out-Null
 Copy-Item -LiteralPath $webp -Destination "$build/imageformats" -Force
 if (!$SkipTests) { Checked 'ctest' @('--test-dir', $build, '--output-on-failure') }
-New-Item -ItemType Directory -Force -Path $deploy | Out-Null
+New-Item -ItemType Directory -Force -Path $deploy, "$deploy/wallpapers" | Out-Null
 Copy-Item -LiteralPath "$build/ZloWallpaper.exe", "$build/libmpv-2.dll", "$build/ffmpeg.exe" -Destination $deploy -Force
 foreach ($helper in @('icontra', 'translucenttb')) {
     New-Item -ItemType Directory -Force -Path "$deploy/$helper" | Out-Null

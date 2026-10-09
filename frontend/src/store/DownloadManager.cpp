@@ -3,13 +3,13 @@
 #include "library/WallpaperLibrary.h"
 #include "media/ThumbnailGenerator.h"
 #include <QCryptographicHash>
+#include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
 #include <QFutureWatcher>
 #include <QNetworkReply>
 #include <QPointer>
 #include "common/AtomicFile.h"
-#include <QStandardPaths>
 #include <QUuid>
 #include <QtConcurrent>
 
@@ -23,8 +23,15 @@ struct DownloadTask {
     QCryptographicHash hash{QCryptographicHash::Sha256};
 };
 
-DownloadManager::DownloadManager(WallpaperLibrary* library, QObject* parent)
-    : QObject(parent), library_(library) { network_.setTransferTimeout(30000); }
+DownloadManager::DownloadManager(WallpaperLibrary* library, QObject* parent,
+                                 const QString& downloadDirectory)
+    : QObject(parent), library_(library),
+      downloadDirectory_(downloadDirectory.isEmpty() ? defaultDownloadDirectory() : downloadDirectory) {
+    network_.setTransferTimeout(30000);
+}
+QString DownloadManager::defaultDownloadDirectory() {
+    return QDir(QCoreApplication::applicationDirPath()).filePath("wallpapers");
+}
 DownloadManager::~DownloadManager() { cancelAll(); }
 bool DownloadManager::busy(const QString& id) const { return tasks_.contains(id); }
 void DownloadManager::resetStates() { cancelAll(); states_.clear(); }
@@ -75,8 +82,8 @@ void DownloadManager::start(const QJsonObject& product, const QJsonObject& grant
         emit imported(existing->id);
         return;
     }
-    const auto directory = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/downloads/" + accountKey;
-    if (!QDir().mkpath(directory)) { fail(task, "无法创建下载目录，请检查磁盘权限"); return; }
+    const auto directory = QDir(downloadDirectory_).filePath(accountKey);
+    if (!QDir().mkpath(directory)) { fail(task, "无法创建壁纸目录：" + directory + "，请检查磁盘权限"); return; }
     const auto key = QCryptographicHash::hash((id + "|" + task->version).toUtf8(), QCryptographicHash::Sha256).toHex();
     task->path = directory + "/" + key + "." + ext;
     task->file = std::make_unique<AtomicFile>(task->path);

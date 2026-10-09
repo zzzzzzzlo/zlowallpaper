@@ -2,7 +2,7 @@
   "application": "ZloWallpaper",
   "version": "0.2.0",
   "qtVersion": "6.11.1",
-  "generatedAt": "2026-10-09T02:14:13.9784033Z",
+  "generatedAt": "2026-10-09T02:51:22.6455572Z",
   "files": [
     {
       "path": "avcodec-62.dll",
@@ -576,8 +576,8 @@
     },
     {
       "path": "ZloWallpaper.exe",
-      "sizeBytes": "1394908",
-      "sha256": "18a761ae32fb970375383141c69d8a21f8534f41798836263b658b38bd77b955"
+      "sizeBytes": "1394720",
+      "sha256": "6a8d538e103be2b0d97aaaf6b3c6694d226bfbd6d1acb0173ed3545aef14333a"
     },
     {
       "path": "generic/qtuiotouchplugin.dll",

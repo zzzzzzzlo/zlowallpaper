@@ -49,7 +49,9 @@ E:\zlowallpaper\ZloWallpaper.exe --api http://127.0.0.1:8080/api/v1
 
 演示账号 `demo` / `Demo12345`。可以注册其他临时测试账号。选择免费壁纸 → 免费领取 → 下载到本地库 → 应用；收费样例创建订单后确认“测试订单（不扣款）”。
 
-本地库、账号凭证、下载与缓存在 Qt AppLocalDataLocation（Windows 通常 `%LOCALAPPDATA%\ZloWallpaper\ZloWallpaper`）。设置在 `HKCU\Software\ZloWallpaper\ZloWallpaper`。下载按 API 地址和 userId 的 SHA-256 分目录。不会迁移或修改 Asterol/LightWallpaper 设置或库。
+新下载的壁纸保存到程序旁的 `wallpapers/`，本次部署即 `E:\zlowallpaper\wallpapers`，下面仍按 API 地址和 userId 的 SHA-256 分账号目录。不再把新壁纸原文件放到 C 盘用户数据目录；库记录、账号凭证、缩略图与视频代理缓存仍在 Qt AppLocalDataLocation（Windows 通常 `%LOCALAPPDATA%\ZloWallpaper\ZloWallpaper`）。设置在 `HKCU\Software\ZloWallpaper\ZloWallpaper`。不会迁移或修改 Asterol/LightWallpaper 设置或库。
+
+此前已下载的文件保留原位置，现有库记录继续有效，不自动搬迁或删除。同账号同版本已有文件仍复用；只有新的下载使用新目录。程序目录必须可写，下载目录无法创建时会报错，不默默退回 C 盘。以后搬动程序目录时，要一起保留 wallpapers 文件夹；现有库使用绝对路径，移动文件后需要重新定位。
 
 两个客户端可以各自启动，但 Windows 桌面壁纸、透明任务栏和桌面图标可见性属于系统共享资源；两边同时控制会竞争。手工验收桌面效果时应只让一个客户端播放/控制任务栏。应用配置独立不代表操作系统桌面状态独立。
 

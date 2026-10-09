@@ -21,5 +21,5 @@ QWARN  : StoreTests::storefrontUiWorkflow() This plugin does not support propaga
 QWARN  : StoreTests::storefrontUiWorkflow() This plugin does not support propagateSizeHints()
 PASS   : StoreTests::storefrontUiWorkflow()
 PASS   : StoreTests::cleanupTestCase()
-Totals: 10 passed, 0 failed, 0 skipped, 0 blacklisted, 5232ms
+Totals: 10 passed, 0 failed, 0 skipped, 0 blacklisted, 4334ms
 ********* Finished testing of StoreTests *********

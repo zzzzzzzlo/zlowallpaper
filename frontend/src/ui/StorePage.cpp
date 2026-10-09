@@ -40,9 +40,9 @@ QPushButton* button(const QString& text, const QString& name = {}) {
     auto* value = new QPushButton(text); value->setObjectName(name); return value;
 }
 }
-StorePage::StorePage(WallpaperLibrary* library, QWidget* parent)
+StorePage::StorePage(WallpaperLibrary* library, QWidget* parent, const QString& downloadDirectory)
     : QWidget(parent), library_(library), store_(new StoreService(this)),
-      downloads_(new DownloadManager(library, this)), demoServer_(new DemoServer(this)) {
+      downloads_(new DownloadManager(library, this, downloadDirectory)), demoServer_(new DemoServer(this)) {
     setObjectName("storePage");
     setAttribute(Qt::WA_StyledBackground, true);
     setStyleSheet(R"(

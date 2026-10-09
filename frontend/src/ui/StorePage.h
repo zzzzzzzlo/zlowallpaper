@@ -20,7 +20,8 @@ class QTreeWidget;
 class StorePage final : public QWidget {
     Q_OBJECT
   public:
-    explicit StorePage(WallpaperLibrary* library, QWidget* parent = nullptr);
+    explicit StorePage(WallpaperLibrary* library, QWidget* parent = nullptr,
+                       const QString& downloadDirectory = {});
   signals:
     void applyLocalEntry(const QString& id);
   private:

@@ -73,7 +73,9 @@ class StoreTests : public QObject {
         QSignalSpy orders(&store, &StoreService::orderCreated); store.createOrder(product.value("id").toString()); QTRY_COMPARE(orders.size(), 1);
         const auto order = orders.at(0).at(0).toJsonObject(); QCOMPARE(order.value("status").toString(), "PENDING");
         store.payTestOrder(order.value("id").toString()); QTRY_VERIFY(store.owns(product.value("id").toString()));
-        QTemporaryDir directory; WallpaperLibrary library(nullptr, directory.path()); DownloadManager downloads(&library);
+        QTemporaryDir directory; WallpaperLibrary library(nullptr, directory.path());
+        const auto downloadRoot = directory.path() + "/wallpapers";
+        DownloadManager downloads(&library, nullptr, downloadRoot);
         connect(&store, &StoreService::downloadAuthorized, &downloads, &DownloadManager::start);
         QSignalSpy imports(&downloads, &DownloadManager::imported);
         QSignalSpy states(&downloads, &DownloadManager::stateChanged);
@@ -81,6 +83,8 @@ class StoreTests : public QObject {
         QTRY_VERIFY_WITH_TIMEOUT(imports.size() == 1 || downloads.state(product.value("id").toString()) == "failed", 10000);
         QVERIFY2(imports.size() == 1, states.isEmpty() ? "No download state" : qPrintable(states.last().at(2).toString()));
         QCOMPARE(library.entries().size(), 1); const auto entry = library.entries().first(); QVERIFY(QFile::exists(entry.path));
+        QVERIFY(entry.path.startsWith(downloadRoot + "/"));
+        QCOMPARE(DownloadManager::defaultDownloadDirectory(), QDir(qApp->applicationDirPath()).filePath("wallpapers"));
         QCOMPARE(entry.storeProductId, product.value("id").toString());
         QCOMPARE(entry.storeAccountKey, store.accountKey());
         WallpaperLibrary reloaded(nullptr, directory.path()); reloaded.load(); QCOMPARE(reloaded.entries().size(), 1);
@@ -91,7 +95,8 @@ class StoreTests : public QObject {
         DemoServer demo; QVERIFY(demo.start()); StoreService store; store.configure(demo.baseUrl(), true);
         store.refreshCatalog(); QTRY_VERIFY(!store.products().isEmpty()); const auto product = store.products()[0].toObject();
         store.login("demo", "Demo12345", false); QTRY_VERIFY(store.loggedIn()); store.createOrder(product.value("id").toString()); QTRY_VERIFY(store.owns(product.value("id").toString()));
-        QTemporaryDir directory; WallpaperLibrary library(nullptr, directory.path()); DownloadManager downloads(&library);
+        QTemporaryDir directory; WallpaperLibrary library(nullptr, directory.path());
+        DownloadManager downloads(&library, nullptr, directory.path() + "/wallpapers");
         connect(&store, &StoreService::downloadAuthorized, &downloads, &DownloadManager::start);
         demo.setCorruptDownloads(true); store.requestDownload(product);
         QTRY_COMPARE(downloads.state(product.value("id").toString()), "failed"); QVERIFY(library.entries().isEmpty());
@@ -122,7 +127,7 @@ class StoreTests : public QObject {
     void storefrontUiWorkflow() {
         QTemporaryDir directory;
         WallpaperLibrary library(nullptr, directory.path());
-        StorePage page(&library);
+        StorePage page(&library, nullptr, directory.path() + "/wallpapers");
         page.resize(1200, 720); page.show();
         QTest::qWait(100); // Let the initial real-endpoint configuration finish.
         auto findButton = [](QWidget* widget, const QString& text) -> QPushButton* {
