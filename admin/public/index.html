@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="color-scheme" content="light" />
+        <meta name="referrer" content="no-referrer" />
+        <title>ZloWallpaper · 管理工作台</title>
+        <link rel="icon" href="/assets/orbit.svg" type="image/svg+xml" />
+        <link rel="stylesheet" href="/styles.css" />
+        <script type="module" src="/js/app.js"></script>
+    </head>
+    <body>
+        <a class="skip-link" href="#main">跳到主要内容</a>
+        <section id="login-view" class="login-shell" aria-label="管理员登录">
+            <header class="login-header">
+                <a class="brand" href="/" aria-label="ZloWallpaper 管理工作台首页"
+                    ><span class="brand-mark" aria-hidden="true">z</span
+                    ><span>ZloWallpaper <small>ADMIN STUDIO</small></span></a
+                >
+                <button class="button quiet" data-config>
+                    <span class="mode-dot"></span><span data-mode-label>模拟数据</span> · 连接设置
+                </button>
+            </header>
+            <main id="main" class="login-main">
+                <div class="login-story">
+                    <p class="eyebrow">WALLPAPERS, READY FOR THE WORLD.</p>
+                    <h1>让好看的壁纸，<br />有一个好去处。</h1>
+                    <p class="lede">
+                        上传素材，整理商品，然后发布。<br />这里是 ZloWallpaper 的内容工作台。
+                    </p>
+                    <div class="art-stack" aria-label="模拟壁纸封面：海岸、群山与宇宙">
+                        <img
+                            class="art-secondary"
+                            src="/assets/mountain.svg"
+                            alt="层叠的蓝色群山"
+                        />
+                        <img class="art-primary" src="/assets/coast.svg" alt="潮汐与蓝色海岸" />
+                        <span class="art-caption"
+                            ><span>潮汐 · 蓝色时刻</span><small>模拟素材 / 内容预览</small></span
+                        >
+                    </div>
+                    <p class="story-footnote">独立管理端 · 不影响桌面客户端的使用</p>
+                </div>
+                <div class="login-card">
+                    <p class="eyebrow">ADMIN ACCESS</p>
+                    <h2>登录工作台</h2>
+                    <p class="muted">管理员权限由服务端验证。</p>
+                    <div id="login-mode" class="notice"></div>
+                    <form id="login-form">
+                        <label for="username">账号</label>
+                        <input
+                            id="username"
+                            name="username"
+                            autocomplete="username"
+                            minlength="3"
+                            maxlength="32"
+                            placeholder="输入管理员账号"
+                            required
+                        />
+                        <label for="password">密码</label>
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            autocomplete="current-password"
+                            minlength="8"
+                            maxlength="128"
+                            placeholder="输入密码"
+                            required
+                        />
+                        <div id="login-error" class="error-box" role="alert" hidden></div>
+                        <button id="login-submit" class="button primary wide" type="submit">
+                            登录工作台 <span aria-hidden="true">→</span>
+                        </button>
+                    </form>
+                    <p class="login-security">
+                        密码与 Token 不保存到浏览器存储。<br />刷新或关闭页面后，需要重新登录。
+                    </p>
+                </div>
+            </main>
+            <footer class="login-footer">
+                <span>ZloWallpaper / 内容管理</span><span>API v1 · 契约优先</span>
+            </footer>
+        </section>
+
+        <div id="workspace" class="workspace" hidden>
+            <aside class="sidebar">
+                <a class="brand" href="/" aria-label="ZloWallpaper 管理工作台首页"
+                    ><span class="brand-mark" aria-hidden="true">z</span
+                    ><span>ZloWallpaper <small>ADMIN STUDIO</small></span></a
+                >
+                <div class="sidebar-group">
+                    <p class="eyebrow">内容管理</p>
+                    <button id="catalog-nav" class="nav-item active">
+                        <span aria-hidden="true">▦</span>商品目录</button
+                    ><button class="nav-item" data-create>
+                        <span aria-hidden="true">＋</span>创建商品
+                    </button>
+                </div>
+                <div class="sidebar-process">
+                    <p class="eyebrow">发布流程</p>
+                    <ol>
+                        <li>上传封面与原文件</li>
+                        <li>完善商品资料</li>
+                        <li>确认后上架</li>
+                    </ol>
+                    <p>更换原文件时，服务端会生成新的资源版本。</p>
+                </div>
+                <div class="sidebar-bottom">
+                    <button class="nav-item" data-config>
+                        <span aria-hidden="true">⚙</span>连接设置
+                    </button>
+                    <div class="profile">
+                        <span class="avatar" aria-hidden="true">Z</span>
+                        <div><strong id="user-name"></strong><small>管理员工作台</small></div>
+                    </div>
+                    <button id="logout" class="button quiet wide">退出登录</button>
+                </div>
+            </aside>
+            <main class="content" id="catalog-main" tabindex="-1">
+                <header class="topbar">
+                    <span>内容管理 <span class="breadcrumb-separator">/</span> 商品目录</span
+                    ><button class="environment" data-config>
+                        <span class="mode-dot"></span><span data-mode-label></span
+                        ><span class="environment-arrow" aria-hidden="true">↗</span>
+                    </button>
+                </header>
+                <div class="content-body">
+                    <div class="page-heading">
+                        <div>
+                            <p class="eyebrow">THE WALLPAPER COLLECTION</p>
+                            <h1>商品目录<span class="heading-period">.</span></h1>
+                            <p class="muted">从第一份素材，到每一次发布。</p>
+                        </div>
+                        <button class="button primary" data-create>＋ 创建商品</button>
+                    </div>
+                    <div id="mode-banner" class="notice mode-banner"></div>
+                    <section class="catalog-panel" aria-label="商品分页列表">
+                        <div class="catalog-toolbar">
+                            <div>
+                                <h2>全部商品 <span id="total" class="count">—</span></h2>
+                                <p>包含草稿、已上架与已下架商品</p>
+                            </div>
+                            <button id="refresh-list" class="button secondary">↻ 刷新列表</button>
+                        </div>
+                        <div id="list-notice" role="alert" hidden></div>
+                        <div
+                            id="list-state"
+                            class="list-state"
+                            role="status"
+                            aria-live="polite"
+                        ></div>
+                        <div id="table-wrap" class="table-wrap" hidden>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th scope="col">商品 / 素材</th>
+                                        <th scope="col">分类</th>
+                                        <th scope="col">价格</th>
+                                        <th scope="col">发布状态</th>
+                                        <th scope="col">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="product-rows"></tbody>
+                            </table>
+                        </div>
+                        <footer class="pagination">
+                            <span id="page-description">—</span>
+                            <div class="page-controls">
+                                <label for="page-size">每页</label
+                                ><select id="page-size">
+                                    <option value="12">12 条</option>
+                                    <option value="24">24 条</option>
+                                    <option value="48">48 条</option></select
+                                ><button
+                                    id="previous"
+                                    class="button icon-button"
+                                    aria-label="上一页"
+                                >
+                                    ←</button
+                                ><span id="page-number">1 / 1</span
+                                ><button id="next" class="button icon-button" aria-label="下一页">
+                                    →
+                                </button>
+                            </div>
+                        </footer>
+                    </section>
+                    <details id="mock-tools" class="mock-tools">
+                        <summary>模拟验收工具 <span>仅模拟模式可用</span></summary>
+                        <div class="mock-controls">
+                            <label for="mock-scenario">下一次请求的场景</label
+                            ><select id="mock-scenario">
+                                <option value="normal">正常</option>
+                                <option value="empty">空商品列表</option>
+                                <option value="error">503 服务不可用</option>
+                                <option value="expired">401 会话过期</option>
+                                <option value="forbidden">403 权限不足</option></select
+                            ><button id="apply-scenario" class="button secondary">应用并刷新</button
+                            ><label for="mock-upload-status">上传返回状态</label
+                            ><select id="mock-upload-status">
+                                <option value="READY">READY · 就绪</option>
+                                <option value="PROCESSING">PROCESSING · 处理中</option>
+                                <option value="FAILED">FAILED · 处理失败</option>
+                            </select>
+                        </div>
+                        <p>
+                            模拟数据仅保存在当前页面内存；刷新即重置。模拟视频元数据为样例值，不等同真实媒体检查。
+                        </p>
+                    </details>
+                    <footer class="content-footer">
+                        <span>商品金额以整数分发送 · 资源版本由服务端生成</span
+                        ><span>ZloWallpaper Admin / v1</span>
+                    </footer>
+                </div>
+            </main>
+        </div>
+
+        <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
+            <form id="settings-form">
+                <div class="dialog-heading">
+                    <div>
+                        <p class="eyebrow">CONNECTION</p>
+                        <h2 id="settings-title">连接设置</h2>
+                    </div>
+                    <button
+                        class="button icon-button"
+                        type="button"
+                        data-close-settings
+                        aria-label="关闭连接设置"
+                    >
+                        ×
+                    </button>
+                </div>
+                <fieldset>
+                    <legend>数据来源</legend>
+                    <label class="radio-option"
+                        ><input type="radio" name="mode" value="mock" />模拟数据
+                        <small>无需后端，演练完整管理流程</small></label
+                    ><label class="radio-option"
+                        ><input type="radio" name="mode" value="real" />真实接口
+                        <small>使用配置的 API，不会自动降级成模拟数据</small></label
+                    >
+                </fieldset>
+                <label for="api-base">API 根地址</label
+                ><input
+                    id="api-base"
+                    type="url"
+                    required
+                    placeholder="http://127.0.0.1:8080/api/v1"
+                />
+                <p class="field-help">
+                    默认 http://127.0.0.1:8080/api/v1。生产使用 HTTPS，路径固定 /api/v1。
+                </p>
+                <div class="notice">
+                    修改连接会退出当前会话并取消旧请求。只记住模式和地址，不记住凭证。
+                </div>
+                <div id="settings-error" class="error-box" role="alert" hidden></div>
+                <details class="contract-note">
+                    <summary>后端联调注意事项</summary>
+                    <p>
+                        允许当前页面来源的 CORS；方法 GET、POST、PATCH、PUT、OPTIONS；请求头
+                        Authorization、Content-Type。上传响应使用 data.id，不能擅自替换为
+                        assetId。异步资产状态查询尚未定义。
+                    </p>
+                </details>
+                <div class="dialog-actions">
+                    <button class="button secondary" type="button" data-close-settings>取消</button
+                    ><button class="button primary" type="submit">保存连接设置</button>
+                </div>
+            </form>
+        </dialog>
+
+        <dialog id="editor-dialog" class="editor-dialog" aria-labelledby="editor-title">
+            <div class="dialog-heading">
+                <div>
+                    <p class="eyebrow">WALLPAPER EDITOR</p>
+                    <h2 id="editor-title">创建商品</h2>
+                </div>
+                <button id="close-editor" class="button icon-button" aria-label="关闭商品编辑器">
+                    ×
+                </button>
+            </div>
+            <form id="editor-form">
+                <div class="editor-grid">
+                    <aside class="asset-column">
+                        <div class="preview-frame">
+                            <img id="cover-preview" alt="商品封面预览" hidden />
+                            <div id="preview-placeholder">
+                                <span aria-hidden="true">▧</span><strong>商品的第一印象</strong
+                                ><small>上传封面后在这里预览</small>
+                            </div>
+                        </div>
+                        <p class="eyebrow asset-caption">封面与原文件 · 两份独立资产</p>
+                        <div class="upload-slot">
+                            <label for="cover-file">封面图片 <span>最大 4 MiB</span></label
+                            ><input
+                                id="cover-file"
+                                type="file"
+                                accept=".jpg,.jpeg,.png,.bmp,.webp,.gif"
+                            />
+                            <div
+                                id="cover-status"
+                                class="asset-status"
+                                role="status"
+                                aria-live="polite"
+                            >
+                                尚未上传
+                            </div>
+                        </div>
+                        <div class="upload-slot">
+                            <label for="original-file">原文件 <span>最大 10 GiB</span></label
+                            ><input
+                                id="original-file"
+                                type="file"
+                                accept=".jpg,.jpeg,.png,.bmp,.webp,.gif,.mp4,.webm,.mov,.avi"
+                            />
+                            <div
+                                id="original-status"
+                                class="asset-status"
+                                role="status"
+                                aria-live="polite"
+                            >
+                                尚未上传
+                            </div>
+                        </div>
+                        <p id="upload-help" class="field-help">
+                            选择文件后立即上传。服务端检查通过后，使用返回的资产编号关联商品。
+                        </p>
+                    </aside>
+                    <div class="product-fields">
+                        <div id="editing-summary" class="notice" hidden></div>
+                        <label for="product-title"
+                            >商品标题 <span class="required-mark">*</span></label
+                        ><input
+                            id="product-title"
+                            name="title"
+                            required
+                            maxlength="120"
+                            placeholder="例如：潮汐 · 蓝色时刻"
+                        />
+                        <div class="field-grid">
+                            <div>
+                                <label for="product-category"
+                                    >分类 <span class="required-mark">*</span></label
+                                ><select id="product-category" name="categoryId" required>
+                                    <option value="">正在加载分类…</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="product-price"
+                                    >价格（元 / CNY）<span class="required-mark">*</span></label
+                                ><input
+                                    id="product-price"
+                                    name="price"
+                                    inputmode="decimal"
+                                    required
+                                    value="0.00"
+                                    placeholder="0.00"
+                                />
+                                <p class="field-help">0.00 为免费商品，最多两位小数。</p>
+                            </div>
+                        </div>
+                        <label for="product-creator">作者</label
+                        ><input
+                            id="product-creator"
+                            name="creator"
+                            maxlength="120"
+                            placeholder="作者或工作室名称"
+                        /><label for="product-description">商品描述</label
+                        ><textarea
+                            id="product-description"
+                            name="description"
+                            maxlength="4000"
+                            rows="6"
+                            placeholder="介绍画面内容、使用场景与素材特点"
+                        ></textarea>
+                        <div class="field-help description-count">
+                            <span>最多 4,000 字</span><span id="description-count">0 / 4,000</span>
+                        </div>
+                        <div class="editor-guidance">
+                            <span aria-hidden="true">↗</span>
+                            <p>
+                                保存资料与上架是两个独立操作。<br />新商品先保存为草稿，再从目录确认上架。
+                            </p>
+                        </div>
+                        <div id="editor-error" class="error-box" role="alert" hidden></div>
+                    </div>
+                </div>
+                <div class="editor-footer">
+                    <span id="save-hint">两份素材 READY 后可创建商品。</span>
+                    <div>
+                        <button id="cancel-editor" class="button secondary" type="button">
+                            取消</button
+                        ><button id="save-product" class="button primary" type="submit">
+                            创建商品
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </dialog>
+
+        <dialog id="confirm-dialog" class="confirm-dialog" aria-labelledby="confirm-title">
+            <div class="confirm-symbol" aria-hidden="true">↗</div>
+            <h2 id="confirm-title"></h2>
+            <p id="confirm-copy"></p>
+            <div id="confirm-error" class="error-box" role="alert" hidden></div>
+            <div class="dialog-actions">
+                <button id="confirm-cancel" class="button secondary">取消</button
+                ><button id="confirm-action" class="button primary">确认</button>
+            </div>
+        </dialog>
+        <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    </body>
+</html>
